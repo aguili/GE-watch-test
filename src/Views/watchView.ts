@@ -3,12 +3,12 @@ export class WatchView {
   private modeBtn: HTMLButtonElement;
   private increaseBtn: HTMLButtonElement;
   private lightBtn: HTMLButtonElement;
-  private formatBtn: HTMLButtonElement; // Nouveau bouton
-  private resetBtn: HTMLButtonElement; // Nouveau bouton
+  private formatBtn: HTMLButtonElement;
+  private resetBtn: HTMLButtonElement;
   private deleteBtn: HTMLButtonElement;
 
   private root: HTMLElement;
-  private container: HTMLElement; // Nouvelle propriété pour stocker le conteneur
+  private container: HTMLElement;
 
   constructor() {
     this.root = document.getElementById("watch-root")!;
@@ -16,7 +16,7 @@ export class WatchView {
   }
 
   private createUI(): void {
-    this.container = document.createElement("div"); // Créer le conteneur
+    this.container = document.createElement("div");
     this.container.className = "watch-container";
 
     this.display = document.createElement("div");
@@ -24,7 +24,7 @@ export class WatchView {
 
     this.modeBtn = document.createElement("button");
     this.modeBtn.className = "btn mode-btn";
-    this.modeBtn.textContent = "MODE";
+    this.modeBtn.textContent = "MOD";
 
     this.increaseBtn = document.createElement("button");
     this.increaseBtn.className = "btn increase-btn";
@@ -32,36 +32,32 @@ export class WatchView {
 
     this.lightBtn = document.createElement("button");
     this.lightBtn.className = "btn light-btn";
-    this.lightBtn.textContent = "LIGHT";
+    this.lightBtn.textContent = "LT";
 
-    // Nouveau bouton pour basculer entre 12h et 24h
     this.formatBtn = document.createElement("button");
     this.formatBtn.className = "btn format-btn";
-    this.formatBtn.textContent = "12/24";
+    this.formatBtn.textContent = "AP";
 
-    // Nouveau bouton Reset
     this.resetBtn = document.createElement("button");
     this.resetBtn.className = "btn reset-btn";
-    this.resetBtn.textContent = "RESET";
+    this.resetBtn.textContent = "RST";
 
-    // Nouveau bouton Delete
     this.deleteBtn = document.createElement("button");
     this.deleteBtn.className = "btn delete-btn";
-    this.deleteBtn.textContent = "Supprimer";
+    this.deleteBtn.textContent = "";
 
     this.container.append(
       this.display,
       this.modeBtn,
       this.increaseBtn,
       this.lightBtn,
-      this.formatBtn, // Ajouter le bouton à l'interface
-      this.resetBtn, // Ajouter le bouton Reset à l'interface
-      this.deleteBtn // Ajouter le bouton Delete à l'interface
+      this.formatBtn,
+      this.resetBtn,
+      this.deleteBtn
     );
-    document.body.appendChild(this.container); // Ajouter le conteneur au DOM
+    document.body.appendChild(this.container);
   }
 
-  // Nouvelle méthode pour retourner le conteneur
   getContainer(): HTMLElement {
     return this.container;
   }
@@ -78,8 +74,8 @@ export class WatchView {
 
     // Convertir en format 12h si nécessaire
     if (is12HourFormat) {
-      const period = hours >= 12 ? "PM" : "AM"; // Déterminer AM ou PM
-      hours = hours % 12 || 12; // Convertir 0 en 12 pour le format 12h
+      const period = hours >= 12 ? "PM" : "AM";
+      hours = hours % 12 || 12;
       this.display.innerHTML = `
             <span class="${
               editMode === "hours" ? "blink" : ""
@@ -87,7 +83,7 @@ export class WatchView {
             <span class="${
               editMode === "minutes" ? "blink" : ""
             }">${minutes}</span>:
-            <span>${seconds}</span>
+            <span class="seconds">${seconds}</span>
             <span class="period">${period}</span> <!-- Afficher AM ou PM dynamiquement -->
         `;
     } else {
@@ -109,12 +105,11 @@ export class WatchView {
     return num.toString().padStart(2, "0");
   }
 
-  // Lier le nouveau bouton
+  //évenements :
   bindFormatButton(handler: () => void): void {
     this.formatBtn.addEventListener("click", handler);
   }
 
-  // Événements
   bindModeButton(handler: () => void): void {
     this.modeBtn.addEventListener("click", handler);
   }

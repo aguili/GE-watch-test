@@ -1,37 +1,49 @@
 export class WatchModel {
   private currentTime: Date;
-  private timezoneOffset: number; // Décalage horaire en heures
+  private timezoneOffset: number;
   private editedTime: Date | null = null;
   private editMode: "hours" | "minutes" | "none" = "none";
   private isLightOn: boolean = false;
-  private is12HourFormat: boolean = false; // Nouvelle propriété
+  private is12HourFormat: boolean = false;
   private updateInterval: number;
 
   constructor(timezoneOffset: number = 0) {
     this.timezoneOffset = timezoneOffset;
     this.currentTime = this.getCurrentTime();
     this.startClock();
-    this.loadSavedTime(); // Charger l'heure sauvegardée au démarrage
+    this.loadSavedTime();
+  }
+
+  // Getters/Setters
+  get time(): Date {
+    return this.editedTime || this.currentTime;
+  }
+  get mode(): string {
+    return this.editMode;
+  }
+  get light(): boolean {
+    return this.isLightOn;
+  }
+  get hourFormat(): boolean {
+    return this.is12HourFormat;
   }
 
   private startClock(): void {
     this.updateInterval = setInterval(() => {
       if (this.editedTime) {
-        // Si une heure a été réglée, on continue à partir de cette heure
         this.editedTime.setSeconds(this.editedTime.getSeconds() + 1);
       } else {
-        // Sinon, on utilise l'heure actuelle
         this.currentTime = this.getCurrentTime();
       }
     }, 1000) as unknown as number;
   }
 
-  // Sauvegarder l'heure réglée dans le localStorage
+  // Gérer l'heure réglée dans le localStorage
   private saveTime(): void {
     if (this.editedTime) {
       localStorage.setItem("savedTime", JSON.stringify(this.editedTime));
     } else {
-      localStorage.removeItem("savedTime"); // Supprimer la sauvegarde si l'heure n'est pas réglée
+      localStorage.removeItem("savedTime");
     }
   }
   private loadSavedTime(): void {
@@ -43,7 +55,7 @@ export class WatchModel {
 
   getCurrentTime(): Date {
     const now = new Date();
-    const offset = this.timezoneOffset * 3600 * 1000; // Convertir en millisecondes
+    const offset = this.timezoneOffset * 3600 * 1000;
     return new Date(now.getTime() + offset);
   }
   syncTime(baseTime: Date): void {
@@ -54,7 +66,6 @@ export class WatchModel {
   setMode(newMode: "hours" | "minutes" | "none"): void {
     this.editMode = newMode;
     if (newMode === "none") {
-      // Quand on quitte le mode édition, on conserve l'heure réglée
       if (!this.editedTime) {
         this.editedTime = new Date(this.currentTime);
       }
@@ -62,7 +73,8 @@ export class WatchModel {
   }
 
   incrementTime(): void {
-    const newTime = new Date(this.currentTime);
+    const timeToUpdate = this.editedTime || this.currentTime;
+    const newTime = new Date(timeToUpdate);
 
     if (this.editMode === "hours") {
       newTime.setHours((newTime.getHours() + 1) % 24);
@@ -72,8 +84,6 @@ export class WatchModel {
         newTime.setHours((newTime.getHours() + 1) % 24);
       }
     }
-
-    // Mettre à jour l'heure réglée
     this.editedTime = newTime;
   }
 
@@ -85,31 +95,14 @@ export class WatchModel {
     this.is12HourFormat = !this.is12HourFormat;
   }
 
-  // Nouvelle méthode pour réinitialiser l'heure
   resetTime(): void {
-    this.currentTime = new Date(); // Réinitialiser à l'heure actuelle
-    this.editedTime = null; // Effacer l'heure réglée manuellement
-    this.saveTime(); // Mettre à jour le localStorage
+    this.currentTime = new Date();
+    this.editedTime = null;
+    this.saveTime();
   }
 
-  // Mettre à jour l'heure réglée et sauvegarder
   setEditedTime(newTime: Date): void {
     this.editedTime = newTime;
-    this.saveTime(); // Sauvegarder la nouvelle heure
-  }
-  // Getters/Setters
-  get time(): Date {
-    return this.editedTime || this.currentTime;
-  }
-
-  get mode(): string {
-    return this.editMode;
-  }
-  get light(): boolean {
-    return this.isLightOn;
-  }
-  // Getter pour le format d'heure
-  get hourFormat(): boolean {
-    return this.is12HourFormat;
+    this.saveTime();
   }
 }

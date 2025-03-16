@@ -13,7 +13,7 @@ class MainController {
   constructor() {
     this.addButton = document.createElement("button");
     this.addButton.className = "btn add-btn";
-    this.addButton.textContent = "Add";
+    this.addButton.textContent = "Add watch";
     this.addButton.addEventListener("click", () => this.addWatch());
     document.body.appendChild(this.addButton);
 
@@ -22,31 +22,22 @@ class MainController {
   }
 
   private addWatch(): void {
-    // Demander à l'utilisateur de choisir un fuseau horaire
     const timezoneOffset = prompt(
       "Choisissez un fuseau horaire (ex: 2 pour GMT+2):"
     );
     const offset = timezoneOffset ? parseInt(timezoneOffset, 10) : 0;
 
-    // Créer une nouvelle montre
     const model = new WatchModel(offset);
     const view = new WatchView();
     const controller = new WatchController(model, view, () =>
       this.deleteWatch(model, view)
     );
-
-    // Ajouter la montre à la liste
     this.watches.push({ model, view, controller });
-
-    // Afficher la nouvelle montre
     document.body.appendChild(view.getContainer());
   }
 
   private deleteWatch(model: WatchModel, view: WatchView): void {
-    // Supprimer la montre de la liste
     this.watches = this.watches.filter((watch) => watch.model !== model);
-
-    // Supprimer l'élément du DOM
     view.getContainer().remove();
   }
 

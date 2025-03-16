@@ -1,5 +1,6 @@
 import { WatchModel } from "../Models/watchModel";
 import { WatchView } from "../Views/watchView";
+import { EnableDrag } from "../utils/enableDrag";
 
 export class WatchController {
   private model: WatchModel;
@@ -10,19 +11,21 @@ export class WatchController {
   constructor(model: WatchModel, view: WatchView, onDelete: () => void) {
     this.model = model;
     this.view = view;
-    this.onDelete = onDelete;
 
     this.view.bindDeleteButton(() => this.handleDelete());
+    this.onDelete = onDelete;
+
     this.setupEventHandlers();
     this.startUpdateLoop();
+    //EnableDrag(view.getContainer());
   }
 
   private setupEventHandlers(): void {
     this.view.bindModeButton(() => this.handleMode());
     this.view.bindIncreaseButton(() => this.handleIncrease());
     this.view.bindLightButton(() => this.handleLight());
-    this.view.bindFormatButton(() => this.handleFormat()); // Nouvel événement
-    this.view.bindResetButton(() => this.handleReset()); // Nouvel événement
+    this.view.bindFormatButton(() => this.handleFormat());
+    this.view.bindResetButton(() => this.handleReset());
   }
 
   private startUpdateLoop(): void {
@@ -31,7 +34,7 @@ export class WatchController {
         this.model.time,
         this.model.mode,
         this.model.light,
-        this.model.hourFormat // Passer le format d'heure à la vue
+        this.model.hourFormat
       );
     }, 1000);
   }
@@ -54,7 +57,7 @@ export class WatchController {
   private handleIncrease(): void {
     this.model.incrementTime();
     if (this.model.mode !== "none") {
-      this.model.setEditedTime(this.model.time); // Sauvegarder l'heure réglée
+      this.model.setEditedTime(this.model.time);
     }
   }
 
@@ -62,16 +65,14 @@ export class WatchController {
     this.model.toggleLight();
   }
 
-  // Nouvelle méthode pour gérer le changement de format
   private handleFormat(): void {
     this.model.toggleHourFormat();
   }
-  // Mettre à jour la méthode handleReset pour supprimer la sauvegarde
   private handleReset(): void {
     this.model.resetTime();
   }
 
   private handleDelete(): void {
-    this.onDelete(); // Appeler la fonction de suppression
+    this.onDelete();
   }
 }
