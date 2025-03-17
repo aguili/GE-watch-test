@@ -14,7 +14,6 @@ body {
   flex-wrap: wrap;
   align-items: center;
   padding: 80px;
-  justify-content: space-between;
 }
 
 /* Conteneur principal */
@@ -67,11 +66,11 @@ body {
   position: relative;
 }
 .period {
-  font-size: 0.6em;
+  font-size: 1em !important;
   position: absolute;
   top: 5px;
   right: 5px;
-  color: black;
+  color: black !important;
 }
 .display span {
   font-family: "DS-Digital", sans-serif;
@@ -80,8 +79,8 @@ body {
 }
 .seconds {
   font-family: "DS-Digital", sans-serif;
-  font-size: 1em !important;
-  color: rgb(12, 182, 69);
+  font-size: 1.5em !important;
+  color: black !important;
 }
 
 /* Boutons */

@@ -2,6 +2,61 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
+/***/ "./src/Controllers/mainWatchController.ts":
+/*!************************************************!*\
+  !*** ./src/Controllers/mainWatchController.ts ***!
+  \************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   MainController: () => (/* binding */ MainController)
+/* harmony export */ });
+/* harmony import */ var _Models_watchModel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../Models/watchModel */ "./src/Models/watchModel.ts");
+/* harmony import */ var _Views_watchView__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../Views/watchView */ "./src/Views/watchView.ts");
+/* harmony import */ var _Controllers_watchController__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../Controllers/watchController */ "./src/Controllers/watchController.ts");
+
+
+
+var MainController = /** @class */ (function () {
+    function MainController() {
+        var _this = this;
+        this.watches = [];
+        this.addButton = document.createElement("button");
+        this.addButton.className = "btn add-btn";
+        this.addButton.textContent = "Add watch";
+        this.addButton.addEventListener("click", function () { return _this.addWatch(); });
+        document.body.appendChild(this.addButton);
+        // Synchroniser toutes les montres chaque seconde
+        setInterval(function () { return _this.syncWatches(); }, 1000);
+    }
+    MainController.prototype.addWatch = function () {
+        var _this = this;
+        var timezoneOffset = prompt("Choisissez un fuseau horaire (ex: 2 pour GMT+2):");
+        var offset = timezoneOffset ? parseInt(timezoneOffset, 10) : 0;
+        var model = new _Models_watchModel__WEBPACK_IMPORTED_MODULE_0__.WatchModel(offset);
+        var view = new _Views_watchView__WEBPACK_IMPORTED_MODULE_1__.WatchView();
+        var controller = new _Controllers_watchController__WEBPACK_IMPORTED_MODULE_2__.WatchController(model, view, function () {
+            return _this.deleteWatch(model, view);
+        });
+        this.watches.push({ model: model, view: view, controller: controller });
+        document.body.appendChild(view.getContainer());
+    };
+    MainController.prototype.deleteWatch = function (model, view) {
+        this.watches = this.watches.filter(function (watch) { return watch.model !== model; });
+        view.getContainer().remove();
+    };
+    MainController.prototype.syncWatches = function () {
+        var now = new Date();
+        this.watches.forEach(function (watch) { return watch.model.syncTime(now); });
+    };
+    return MainController;
+}());
+
+
+
+/***/ }),
+
 /***/ "./src/Controllers/watchController.ts":
 /*!********************************************!*\
   !*** ./src/Controllers/watchController.ts ***!
@@ -93,10 +148,9 @@ var WatchModel = /** @class */ (function () {
         this.editMode = "none";
         this.isLightOn = false;
         this.is12HourFormat = false;
-        this.timezoneOffset = timezoneOffset;
-        this.currentTime = this.getCurrentTime();
+        this.currentTime = this.applyTimezoneOffset(new Date(), timezoneOffset);
+        console.log("1this.currentTime", this.currentTime);
         this.startClock();
-        this.loadSavedTime();
     }
     Object.defineProperty(WatchModel.prototype, "time", {
         // Getters/Setters
@@ -134,33 +188,22 @@ var WatchModel = /** @class */ (function () {
                 _this.editedTime.setSeconds(_this.editedTime.getSeconds() + 1);
             }
             else {
-                _this.currentTime = _this.getCurrentTime();
+                var newTime = new Date(_this.currentTime.getTime());
+                newTime.setSeconds(newTime.getSeconds() + 1);
+                _this.currentTime = newTime;
             }
         }, 1000);
     };
-    // Gérer l'heure réglée dans le localStorage
-    WatchModel.prototype.saveTime = function () {
-        if (this.editedTime) {
-            localStorage.setItem("savedTime", JSON.stringify(this.editedTime));
-        }
-        else {
-            localStorage.removeItem("savedTime");
-        }
+    WatchModel.prototype.applyTimezoneOffset = function (date, timezoneOffset) {
+        var offsetInMilliseconds = timezoneOffset * 60 * 60 * 1000;
+        return new Date(date.getTime() + offsetInMilliseconds);
     };
-    WatchModel.prototype.loadSavedTime = function () {
-        var savedTime = localStorage.getItem("savedTime");
-        if (savedTime) {
-            this.editedTime = new Date(JSON.parse(savedTime));
-        }
-    };
-    WatchModel.prototype.getCurrentTime = function () {
-        var now = new Date();
-        var offset = this.timezoneOffset * 3600 * 1000;
-        return new Date(now.getTime() + offset);
+    WatchModel.prototype.getCurrentTime = function (timezoneOffset) {
+        if (timezoneOffset === void 0) { timezoneOffset = 0; }
+        return this.applyTimezoneOffset(new Date(), timezoneOffset);
     };
     WatchModel.prototype.syncTime = function (baseTime) {
-        var offset = this.timezoneOffset * 3600 * 1000;
-        this.currentTime = new Date(baseTime.getTime() + offset);
+        this.currentTime = new Date(baseTime.getTime());
     };
     WatchModel.prototype.setMode = function (newMode) {
         this.editMode = newMode;
@@ -193,11 +236,9 @@ var WatchModel = /** @class */ (function () {
     WatchModel.prototype.resetTime = function () {
         this.currentTime = new Date();
         this.editedTime = null;
-        this.saveTime();
     };
     WatchModel.prototype.setEditedTime = function (newTime) {
         this.editedTime = newTime;
-        this.saveTime();
     };
     return WatchModel;
 }());
@@ -218,7 +259,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ });
 var WatchView = /** @class */ (function () {
     function WatchView() {
-        this.root = document.getElementById("watch-root");
+        document.getElementById("watch-root");
         this.createUI();
     }
     WatchView.prototype.createUI = function () {
@@ -258,10 +299,10 @@ var WatchView = /** @class */ (function () {
         if (is12HourFormat) {
             var period = hours >= 12 ? "PM" : "AM";
             hours = hours % 12 || 12;
-            this.display.innerHTML = "\n            <span class=\"".concat(editMode === "hours" ? "blink" : "", "\">").concat(this.formatNumber(hours), "</span>:\n            <span class=\"").concat(editMode === "minutes" ? "blink" : "", "\">").concat(minutes, "</span>:\n            <span class=\"seconds\">").concat(seconds, "</span>\n            <span class=\"period\">").concat(period, "</span> <!-- Afficher AM ou PM dynamiquement -->\n        ");
+            this.display.innerHTML = "\n        <span class=\"".concat(editMode === "hours" ? "blink" : "", "\">").concat(this.formatNumber(hours), "</span>:\n        <span class=\"").concat(editMode === "minutes" ? "blink" : "", "\">").concat(minutes, "</span>:\n        <span>").concat(seconds, "</span>\n        <span class=\"period\">").concat(period, "</span>\n      ");
         }
         else {
-            this.display.innerHTML = "\n            <span class=\"".concat(editMode === "hours" ? "blink" : "", "\">").concat(this.formatNumber(hours), "</span>:\n            <span class=\"").concat(editMode === "minutes" ? "blink" : "", "\">").concat(minutes, "</span>:\n            <span>").concat(seconds, "</span>\n        ");
+            this.display.innerHTML = "\n        <span class=\"".concat(editMode === "hours" ? "blink" : "", "\">").concat(this.formatNumber(hours), "</span>:\n        <span class=\"").concat(editMode === "minutes" ? "blink" : "", "\">").concat(minutes, "</span>:\n        <span>").concat(seconds, "</span>\n      ");
         }
         this.display.style.backgroundColor = isLightOn ? "#FBE106" : "#FFFFFF";
     };
@@ -357,48 +398,10 @@ var __webpack_exports__ = {};
   !*** ./src/index.ts ***!
   \**********************/
 __webpack_require__.r(__webpack_exports__);
-/* harmony import */ var _Models_watchModel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Models/watchModel */ "./src/Models/watchModel.ts");
-/* harmony import */ var _Views_watchView__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./Views/watchView */ "./src/Views/watchView.ts");
-/* harmony import */ var _Controllers_watchController__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./Controllers/watchController */ "./src/Controllers/watchController.ts");
+/* harmony import */ var _Controllers_mainWatchController__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./Controllers/mainWatchController */ "./src/Controllers/mainWatchController.ts");
 
-
-
-var MainController = /** @class */ (function () {
-    function MainController() {
-        var _this = this;
-        this.watches = [];
-        this.addButton = document.createElement("button");
-        this.addButton.className = "btn add-btn";
-        this.addButton.textContent = "Add watch";
-        this.addButton.addEventListener("click", function () { return _this.addWatch(); });
-        document.body.appendChild(this.addButton);
-        // Synchroniser toutes les montres chaque seconde
-        setInterval(function () { return _this.syncWatches(); }, 1000);
-    }
-    MainController.prototype.addWatch = function () {
-        var _this = this;
-        var timezoneOffset = prompt("Choisissez un fuseau horaire (ex: 2 pour GMT+2):");
-        var offset = timezoneOffset ? parseInt(timezoneOffset, 10) : 0;
-        var model = new _Models_watchModel__WEBPACK_IMPORTED_MODULE_0__.WatchModel(offset);
-        var view = new _Views_watchView__WEBPACK_IMPORTED_MODULE_1__.WatchView();
-        var controller = new _Controllers_watchController__WEBPACK_IMPORTED_MODULE_2__.WatchController(model, view, function () {
-            return _this.deleteWatch(model, view);
-        });
-        this.watches.push({ model: model, view: view, controller: controller });
-        document.body.appendChild(view.getContainer());
-    };
-    MainController.prototype.deleteWatch = function (model, view) {
-        this.watches = this.watches.filter(function (watch) { return watch.model !== model; });
-        view.getContainer().remove();
-    };
-    MainController.prototype.syncWatches = function () {
-        var now = new Date();
-        this.watches.forEach(function (watch) { return watch.model.syncTime(now); });
-    };
-    return MainController;
-}());
 // Initialiser l'application
-new MainController();
+new _Controllers_mainWatchController__WEBPACK_IMPORTED_MODULE_0__.MainController();
 
 })();
 

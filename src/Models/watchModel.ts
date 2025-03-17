@@ -1,6 +1,5 @@
 export class WatchModel {
   private currentTime: Date;
-  private timezoneOffset: number;
   private editedTime: Date | null = null;
   private editMode: "hours" | "minutes" | "none" = "none";
   private isLightOn: boolean = false;
@@ -8,10 +7,9 @@ export class WatchModel {
   private updateInterval: number;
 
   constructor(timezoneOffset: number = 0) {
-    this.timezoneOffset = timezoneOffset;
-    this.currentTime = this.getCurrentTime();
+    this.currentTime = this.applyTimezoneOffset(new Date(), timezoneOffset);
+    console.log("1this.currentTime", this.currentTime);
     this.startClock();
-    this.loadSavedTime();
   }
 
   // Getters/Setters
@@ -33,34 +31,22 @@ export class WatchModel {
       if (this.editedTime) {
         this.editedTime.setSeconds(this.editedTime.getSeconds() + 1);
       } else {
-        this.currentTime = this.getCurrentTime();
+        const newTime = new Date(this.currentTime.getTime());
+        newTime.setSeconds(newTime.getSeconds() + 1);
+        this.currentTime = newTime;
       }
     }, 1000) as unknown as number;
   }
-
-  // Gérer l'heure réglée dans le localStorage
-  private saveTime(): void {
-    if (this.editedTime) {
-      localStorage.setItem("savedTime", JSON.stringify(this.editedTime));
-    } else {
-      localStorage.removeItem("savedTime");
-    }
-  }
-  private loadSavedTime(): void {
-    const savedTime = localStorage.getItem("savedTime");
-    if (savedTime) {
-      this.editedTime = new Date(JSON.parse(savedTime));
-    }
+  private applyTimezoneOffset(date: Date, timezoneOffset: number): Date {
+    const offsetInMilliseconds = timezoneOffset * 60 * 60 * 1000;
+    return new Date(date.getTime() + offsetInMilliseconds);
   }
 
-  getCurrentTime(): Date {
-    const now = new Date();
-    const offset = this.timezoneOffset * 3600 * 1000;
-    return new Date(now.getTime() + offset);
+  getCurrentTime(timezoneOffset: number = 0): Date {
+    return this.applyTimezoneOffset(new Date(), timezoneOffset);
   }
   syncTime(baseTime: Date): void {
-    const offset = this.timezoneOffset * 3600 * 1000;
-    this.currentTime = new Date(baseTime.getTime() + offset);
+    this.currentTime = new Date(baseTime.getTime());
   }
 
   setMode(newMode: "hours" | "minutes" | "none"): void {
@@ -84,6 +70,7 @@ export class WatchModel {
         newTime.setHours((newTime.getHours() + 1) % 24);
       }
     }
+
     this.editedTime = newTime;
   }
 
@@ -98,11 +85,9 @@ export class WatchModel {
   resetTime(): void {
     this.currentTime = new Date();
     this.editedTime = null;
-    this.saveTime();
   }
 
   setEditedTime(newTime: Date): void {
     this.editedTime = newTime;
-    this.saveTime();
   }
 }

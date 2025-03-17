@@ -1,4 +1,3 @@
-// Fonction pour activer le déplacement des montres
 export function EnableDrag(element: HTMLElement): void {
   let isDragging = false;
   let offsetX: number, offsetY: number;

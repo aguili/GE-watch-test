@@ -7,11 +7,10 @@ export class WatchView {
   private resetBtn: HTMLButtonElement;
   private deleteBtn: HTMLButtonElement;
 
-  private root: HTMLElement;
   private container: HTMLElement;
 
   constructor() {
-    this.root = document.getElementById("watch-root")!;
+    document.getElementById("watch-root")!;
     this.createUI();
   }
 
@@ -77,25 +76,25 @@ export class WatchView {
       const period = hours >= 12 ? "PM" : "AM";
       hours = hours % 12 || 12;
       this.display.innerHTML = `
-            <span class="${
-              editMode === "hours" ? "blink" : ""
-            }">${this.formatNumber(hours)}</span>:
-            <span class="${
-              editMode === "minutes" ? "blink" : ""
-            }">${minutes}</span>:
-            <span class="seconds">${seconds}</span>
-            <span class="period">${period}</span> <!-- Afficher AM ou PM dynamiquement -->
-        `;
+        <span class="${
+          editMode === "hours" ? "blink" : ""
+        }">${this.formatNumber(hours)}</span>:
+        <span class="${
+          editMode === "minutes" ? "blink" : ""
+        }">${minutes}</span>:
+        <span>${seconds}</span>
+        <span class="period">${period}</span>
+      `;
     } else {
       this.display.innerHTML = `
-            <span class="${
-              editMode === "hours" ? "blink" : ""
-            }">${this.formatNumber(hours)}</span>:
-            <span class="${
-              editMode === "minutes" ? "blink" : ""
-            }">${minutes}</span>:
-            <span>${seconds}</span>
-        `;
+        <span class="${
+          editMode === "hours" ? "blink" : ""
+        }">${this.formatNumber(hours)}</span>:
+        <span class="${
+          editMode === "minutes" ? "blink" : ""
+        }">${minutes}</span>:
+        <span>${seconds}</span>
+      `;
     }
 
     this.display.style.backgroundColor = isLightOn ? "#FBE106" : "#FFFFFF";
