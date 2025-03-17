@@ -73,8 +73,13 @@ export class WatchView {
 
     // Convertir en format 12h si nécessaire
     if (is12HourFormat) {
-      const period = hours >= 12 ? "AM" : "PM";
-      hours = hours % 12 || 12;
+      const period = hours >= 12 ? "PM" : "AM";
+      // Convertir en format 12h
+      if (hours === 0) {
+        hours = 12; // Minuit (0 heures) devient 12 en format 12h
+      } else if (hours > 12) {
+        hours = hours % 12; // Heures après midi (13-23) deviennent 1-11
+      }
       this.display.innerHTML = `
             <span class="${
               editMode === "hours" ? "blink" : ""

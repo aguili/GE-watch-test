@@ -22,11 +22,36 @@ export class MainController {
   }
 
   private addWatch(): void {
-    const timezoneOffset = prompt(
-      "Choisissez un fuseau horaire (ex: 2 pour GMT+2):"
-    );
-    const offset = timezoneOffset ? parseInt(timezoneOffset, 10) : 0;
+    let timezoneOffset: string | null;
+    let offset: number;
+    let isValidInput: boolean = false;
 
+    while (!isValidInput) {
+      timezoneOffset = prompt(
+        "Choisissez un fuseau horaire (ex: 2 pour GMT+2, -3 pour GMT-3) :"
+      );
+      if (timezoneOffset === null) {
+        return;
+      }
+      if (timezoneOffset.trim() === "") {
+        offset = 0; // Convertir en heures
+        console.log("Décalage horaire du système (GMT):", offset);
+        break; // Sortir de la boucle
+      }
+      if (isNaN(Number(timezoneOffset))) {
+        alert("Erreur : Vous devez entrer un nombre valide.");
+        continue;
+      }
+
+      offset = parseInt(timezoneOffset, 10);
+      if (offset < -12 || offset > 12) {
+        alert("Erreur : Le fuseau horaire doit être compris entre -12 et +12.");
+        continue;
+      }
+      isValidInput = true;
+    }
+
+    // Créer une nouvelle montre avec le décalage horaire valide
     const model = new WatchModel(offset);
     const view = new WatchView();
     const controller = new WatchController(model, view, () =>

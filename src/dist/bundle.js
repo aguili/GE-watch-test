@@ -32,8 +32,31 @@ var MainController = /** @class */ (function () {
     }
     MainController.prototype.addWatch = function () {
         var _this = this;
-        var timezoneOffset = prompt("Choisissez un fuseau horaire (ex: 2 pour GMT+2):");
-        var offset = timezoneOffset ? parseInt(timezoneOffset, 10) : 0;
+        var timezoneOffset;
+        var offset;
+        var isValidInput = false;
+        while (!isValidInput) {
+            timezoneOffset = prompt("Choisissez un fuseau horaire (ex: 2 pour GMT+2, -3 pour GMT-3) :");
+            if (timezoneOffset === null) {
+                return;
+            }
+            if (timezoneOffset.trim() === "") {
+                offset = 0; // Convertir en heures
+                console.log("Décalage horaire du système (GMT):", offset);
+                break; // Sortir de la boucle
+            }
+            if (isNaN(Number(timezoneOffset))) {
+                alert("Erreur : Vous devez entrer un nombre valide.");
+                continue;
+            }
+            offset = parseInt(timezoneOffset, 10);
+            if (offset < -12 || offset > 12) {
+                alert("Erreur : Le fuseau horaire doit être compris entre -12 et +12.");
+                continue;
+            }
+            isValidInput = true;
+        }
+        // Créer une nouvelle montre avec le décalage horaire valide
         var model = new _Models_watchModel__WEBPACK_IMPORTED_MODULE_0__.WatchModel(offset);
         var view = new _Views_watchView__WEBPACK_IMPORTED_MODULE_1__.WatchView();
         var controller = new _Controllers_watchController__WEBPACK_IMPORTED_MODULE_2__.WatchController(model, view, function () {
@@ -313,8 +336,14 @@ var WatchView = /** @class */ (function () {
         var seconds = this.formatNumber(time.getSeconds());
         // Convertir en format 12h si nécessaire
         if (is12HourFormat) {
-            var period = hours >= 12 ? "AM" : "PM";
-            hours = hours % 12 || 12;
+            var period = hours >= 12 ? "PM" : "AM";
+            // Convertir en format 12h
+            if (hours === 0) {
+                hours = 12; // Minuit (0 heures) devient 12 en format 12h
+            }
+            else if (hours > 12) {
+                hours = hours % 12; // Heures après midi (13-23) deviennent 1-11
+            }
             this.display.innerHTML = "\n            <span class=\"".concat(editMode === "hours" ? "blink" : "", "\">").concat(this.formatNumber(hours), "</span>:\n            <span class=\"").concat(editMode === "minutes" ? "blink" : "", "\">").concat(minutes, "</span>:\n            <span class=\"seconds\">").concat(seconds, "</span>\n            <span class=\"period\">").concat(period, "</span> <!-- Afficher AM ou PM dynamiquement -->\n        ");
         }
         else {
