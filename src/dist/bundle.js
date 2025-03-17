@@ -67,6 +67,8 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   WatchController: () => (/* binding */ WatchController)
 /* harmony export */ });
+/* harmony import */ var _utils_enableDrag__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/enableDrag */ "./src/utils/enableDrag.ts");
+
 var WatchController = /** @class */ (function () {
     function WatchController(model, view, onDelete) {
         var _this = this;
@@ -77,7 +79,7 @@ var WatchController = /** @class */ (function () {
         this.onDelete = onDelete;
         this.setupEventHandlers();
         this.startUpdateLoop();
-        //EnableDrag(view.getContainer());
+        (0,_utils_enableDrag__WEBPACK_IMPORTED_MODULE_0__.EnableDrag)(view.getContainer());
     }
     WatchController.prototype.setupEventHandlers = function () {
         var _this = this;
@@ -148,9 +150,10 @@ var WatchModel = /** @class */ (function () {
         this.editMode = "none";
         this.isLightOn = false;
         this.is12HourFormat = false;
-        this.currentTime = this.applyTimezoneOffset(new Date(), timezoneOffset);
-        console.log("1this.currentTime", this.currentTime);
+        this.timezoneOffset = timezoneOffset;
+        this.currentTime = this.getCurrentTime();
         this.startClock();
+        this.loadSavedTime();
     }
     Object.defineProperty(WatchModel.prototype, "time", {
         // Getters/Setters
@@ -188,22 +191,33 @@ var WatchModel = /** @class */ (function () {
                 _this.editedTime.setSeconds(_this.editedTime.getSeconds() + 1);
             }
             else {
-                var newTime = new Date(_this.currentTime.getTime());
-                newTime.setSeconds(newTime.getSeconds() + 1);
-                _this.currentTime = newTime;
+                _this.currentTime = _this.getCurrentTime();
             }
         }, 1000);
     };
-    WatchModel.prototype.applyTimezoneOffset = function (date, timezoneOffset) {
-        var offsetInMilliseconds = timezoneOffset * 60 * 60 * 1000;
-        return new Date(date.getTime() + offsetInMilliseconds);
+    // Gérer l'heure réglée dans le localStorage
+    WatchModel.prototype.saveTime = function () {
+        if (this.editedTime) {
+            localStorage.setItem("savedTime", JSON.stringify(this.editedTime));
+        }
+        else {
+            localStorage.removeItem("savedTime");
+        }
     };
-    WatchModel.prototype.getCurrentTime = function (timezoneOffset) {
-        if (timezoneOffset === void 0) { timezoneOffset = 0; }
-        return this.applyTimezoneOffset(new Date(), timezoneOffset);
+    WatchModel.prototype.loadSavedTime = function () {
+        var savedTime = localStorage.getItem("savedTime");
+        if (savedTime) {
+            this.editedTime = new Date(JSON.parse(savedTime));
+        }
+    };
+    WatchModel.prototype.getCurrentTime = function () {
+        var now = new Date();
+        var offset = this.timezoneOffset * 3600 * 1000;
+        return new Date(now.getTime() + offset);
     };
     WatchModel.prototype.syncTime = function (baseTime) {
-        this.currentTime = new Date(baseTime.getTime());
+        var offset = this.timezoneOffset * 3600 * 1000;
+        this.currentTime = new Date(baseTime.getTime() + offset);
     };
     WatchModel.prototype.setMode = function (newMode) {
         this.editMode = newMode;
@@ -236,9 +250,11 @@ var WatchModel = /** @class */ (function () {
     WatchModel.prototype.resetTime = function () {
         this.currentTime = new Date();
         this.editedTime = null;
+        this.saveTime();
     };
     WatchModel.prototype.setEditedTime = function (newTime) {
         this.editedTime = newTime;
+        this.saveTime();
     };
     return WatchModel;
 }());
@@ -297,12 +313,12 @@ var WatchView = /** @class */ (function () {
         var seconds = this.formatNumber(time.getSeconds());
         // Convertir en format 12h si nécessaire
         if (is12HourFormat) {
-            var period = hours >= 12 ? "PM" : "AM";
+            var period = hours >= 12 ? "AM" : "PM";
             hours = hours % 12 || 12;
-            this.display.innerHTML = "\n        <span class=\"".concat(editMode === "hours" ? "blink" : "", "\">").concat(this.formatNumber(hours), "</span>:\n        <span class=\"").concat(editMode === "minutes" ? "blink" : "", "\">").concat(minutes, "</span>:\n        <span>").concat(seconds, "</span>\n        <span class=\"period\">").concat(period, "</span>\n      ");
+            this.display.innerHTML = "\n            <span class=\"".concat(editMode === "hours" ? "blink" : "", "\">").concat(this.formatNumber(hours), "</span>:\n            <span class=\"").concat(editMode === "minutes" ? "blink" : "", "\">").concat(minutes, "</span>:\n            <span class=\"seconds\">").concat(seconds, "</span>\n            <span class=\"period\">").concat(period, "</span> <!-- Afficher AM ou PM dynamiquement -->\n        ");
         }
         else {
-            this.display.innerHTML = "\n        <span class=\"".concat(editMode === "hours" ? "blink" : "", "\">").concat(this.formatNumber(hours), "</span>:\n        <span class=\"").concat(editMode === "minutes" ? "blink" : "", "\">").concat(minutes, "</span>:\n        <span>").concat(seconds, "</span>\n      ");
+            this.display.innerHTML = "\n            <span class=\"".concat(editMode === "hours" ? "blink" : "", "\">").concat(this.formatNumber(hours), "</span>:\n            <span class=\"").concat(editMode === "minutes" ? "blink" : "", "\">").concat(minutes, "</span>:\n            <span>").concat(seconds, "</span>\n        ");
         }
         this.display.style.backgroundColor = isLightOn ? "#FBE106" : "#FFFFFF";
     };
@@ -331,6 +347,42 @@ var WatchView = /** @class */ (function () {
     return WatchView;
 }());
 
+
+
+/***/ }),
+
+/***/ "./src/utils/enableDrag.ts":
+/*!*********************************!*\
+  !*** ./src/utils/enableDrag.ts ***!
+  \*********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   EnableDrag: () => (/* binding */ EnableDrag)
+/* harmony export */ });
+function EnableDrag(element) {
+    var isDragging = false;
+    var offsetX, offsetY;
+    element.addEventListener("mousedown", function (e) {
+        isDragging = true;
+        offsetX = e.clientX - element.getBoundingClientRect().left;
+        offsetY = e.clientY - element.getBoundingClientRect().top;
+        element.style.cursor = "grabbing";
+    });
+    document.addEventListener("mousemove", function (e) {
+        if (isDragging) {
+            element.style.left = "".concat(e.clientX - offsetX, "px");
+            element.style.top = "".concat(e.clientY - offsetY, "px");
+        }
+    });
+    document.addEventListener("mouseup", function () {
+        if (isDragging) {
+            isDragging = false;
+            element.style.cursor = "grab";
+        }
+    });
+}
 
 
 /***/ })

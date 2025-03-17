@@ -26,6 +26,7 @@ export class MainController {
       "Choisissez un fuseau horaire (ex: 2 pour GMT+2):"
     );
     const offset = timezoneOffset ? parseInt(timezoneOffset, 10) : 0;
+
     const model = new WatchModel(offset);
     const view = new WatchView();
     const controller = new WatchController(model, view, () =>

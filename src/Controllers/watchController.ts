@@ -17,7 +17,7 @@ export class WatchController {
 
     this.setupEventHandlers();
     this.startUpdateLoop();
-    //EnableDrag(view.getContainer());
+    EnableDrag(view.getContainer());
   }
 
   private setupEventHandlers(): void {

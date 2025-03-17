@@ -73,28 +73,28 @@ export class WatchView {
 
     // Convertir en format 12h si nécessaire
     if (is12HourFormat) {
-      const period = hours >= 12 ? "PM" : "AM";
+      const period = hours >= 12 ? "AM" : "PM";
       hours = hours % 12 || 12;
       this.display.innerHTML = `
-        <span class="${
-          editMode === "hours" ? "blink" : ""
-        }">${this.formatNumber(hours)}</span>:
-        <span class="${
-          editMode === "minutes" ? "blink" : ""
-        }">${minutes}</span>:
-        <span>${seconds}</span>
-        <span class="period">${period}</span>
-      `;
+            <span class="${
+              editMode === "hours" ? "blink" : ""
+            }">${this.formatNumber(hours)}</span>:
+            <span class="${
+              editMode === "minutes" ? "blink" : ""
+            }">${minutes}</span>:
+            <span class="seconds">${seconds}</span>
+            <span class="period">${period}</span> <!-- Afficher AM ou PM dynamiquement -->
+        `;
     } else {
       this.display.innerHTML = `
-        <span class="${
-          editMode === "hours" ? "blink" : ""
-        }">${this.formatNumber(hours)}</span>:
-        <span class="${
-          editMode === "minutes" ? "blink" : ""
-        }">${minutes}</span>:
-        <span>${seconds}</span>
-      `;
+            <span class="${
+              editMode === "hours" ? "blink" : ""
+            }">${this.formatNumber(hours)}</span>:
+            <span class="${
+              editMode === "minutes" ? "blink" : ""
+            }">${minutes}</span>:
+            <span>${seconds}</span>
+        `;
     }
 
     this.display.style.backgroundColor = isLightOn ? "#FBE106" : "#FFFFFF";
