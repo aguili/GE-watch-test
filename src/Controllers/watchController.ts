@@ -75,4 +75,8 @@ export class WatchController {
   private handleDelete(): void {
     this.onDelete();
   }
+  //public update(time: Date): void {
+  //  const syncedTime = this.model.syncTime(time);
+  //  this.view.updateDisplay(syncedTime);
+  //}
 }

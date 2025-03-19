@@ -5,13 +5,11 @@ export class WatchModel {
   private editMode: "hours" | "minutes" | "none" = "none";
   private isLightOn: boolean = false;
   private is12HourFormat: boolean = false;
-  private updateInterval: number;
 
   constructor(timezoneOffset: number = 0) {
     this.timezoneOffset = timezoneOffset;
     this.currentTime = this.getCurrentTime();
     this.startClock();
-    this.loadSavedTime();
   }
 
   // Getters/Setters
@@ -29,28 +27,13 @@ export class WatchModel {
   }
 
   private startClock(): void {
-    this.updateInterval = setInterval(() => {
+    setInterval(() => {
       if (this.editedTime) {
         this.editedTime.setSeconds(this.editedTime.getSeconds() + 1);
       } else {
         this.currentTime = this.getCurrentTime();
       }
     }, 1000) as unknown as number;
-  }
-
-  // Gérer l'heure réglée dans le localStorage
-  private saveTime(): void {
-    if (this.editedTime) {
-      localStorage.setItem("savedTime", JSON.stringify(this.editedTime));
-    } else {
-      localStorage.removeItem("savedTime");
-    }
-  }
-  private loadSavedTime(): void {
-    const savedTime = localStorage.getItem("savedTime");
-    if (savedTime) {
-      this.editedTime = new Date(JSON.parse(savedTime));
-    }
   }
 
   getCurrentTime(): Date {
@@ -98,11 +81,9 @@ export class WatchModel {
   resetTime(): void {
     this.currentTime = new Date();
     this.editedTime = null;
-    this.saveTime();
   }
 
   setEditedTime(newTime: Date): void {
     this.editedTime = newTime;
-    this.saveTime();
   }
 }

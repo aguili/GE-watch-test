@@ -28,7 +28,7 @@ body {
   width: 300px;
   height: 400px;
   position: relative;
-  background-image: url("casio-f91w.png");
+  background-image: url("fonts/casio-f91w.png");
   background-size: cover;
   background-position: center;
   border-radius: 15px;
@@ -102,18 +102,26 @@ body {
 }
 
 /* Bouton Add */
-.add-btn {
+.add-btn-dg {
   background-color: #2ecc71;
   color: white;
   border: none;
   padding: 10px 15px;
-  margin-bottom: 20px;
   cursor: pointer;
-  transition: background-color 0.3s ease, transform 0.2s ease;
   position: fixed;
-  top: 20px;
-  left: 50%;
-  transform: translateX(-50%);
+  top: 2%;
+  left: 20%;
+  z-index: 1000;
+}
+.add-btn-an {
+  background-color: #2ecc71;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  cursor: pointer;
+  position: fixed;
+  top: 2%;
+  left: 10%;
   z-index: 1000;
 }
 
@@ -124,6 +132,21 @@ body {
 
 .add-btn:active {
   transform: scale(0.95) translateX(-50%);
+}
+
+.add-btn {
+  background-color: #2ecc71;
+  color: white;
+  border: none;
+  padding: 10px 15px;
+  margin-bottom: 20px;
+  cursor: pointer;
+  transition: background-color 0.3s ease, transform 0.2s ease;
+  position: fixed;
+  top: 20px;
+  left: 70%;
+  transform: translateX(-50%);
+  z-index: 1000;
 }
 
 /* Bouton Supprimer */
@@ -155,7 +178,6 @@ body {
   transform: translate(-50%, -50%) rotate(-45deg);
 }
 
-/* Effet au survol */
 .delete-btn:hover::before,
 .delete-btn:hover::after {
   background-color: #cc0000;
@@ -239,12 +261,55 @@ body {
     format("woff2");
 }
 
-/* Responsive design */
-@media (max-width: 768px) {
-  .watch-container {
-    min-width: 310px;
-    min-height: 400px;
-    width: auto;
-    height: auto;
-  }
+/* analogique design */
+.analog-clock {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 20px;
+  padding: 20px;
+  width: 300px;
+  height: 400px;
+  position: relative;
+  background-image: url("fonts/square-clock.png");
+  background-size: 300px 300px;
+  background-repeat: no-repeat;
+  background-position: center;
+  border-radius: 15px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+  cursor: grab;
+}
+
+.analog-clock:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 6px 15px rgba(0, 0, 0, 0.2);
+}
+
+.hand {
+  position: absolute;
+  background-color: black;
+  transform-origin: bottom center;
+  left: 50%;
+  bottom: 50%;
+}
+
+.hour-hand {
+  width: 4px;
+  height: 50px;
+}
+
+.minute-hand {
+  width: 3px;
+  height: 70px;
+}
+
+.second-hand {
+  width: 2px;
+  height: 80px;
+  background-color: red;
+}
+.analog-clock {
+  position: relative;
 }

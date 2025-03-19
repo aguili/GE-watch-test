@@ -2,6 +2,41 @@
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
+/***/ "./src/Controllers/AnalogWatchController.ts":
+/*!**************************************************!*\
+  !*** ./src/Controllers/AnalogWatchController.ts ***!
+  \**************************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   AnalogWatchController: () => (/* binding */ AnalogWatchController)
+/* harmony export */ });
+var AnalogWatchController = /** @class */ (function () {
+    function AnalogWatchController(model, view, onDelete) {
+        var _this = this;
+        this.model = model;
+        this.view = view;
+        this.onDelete = onDelete;
+        var deleteButton = document.createElement("button");
+        deleteButton.textContent = "";
+        deleteButton.className = "btn delete-btn";
+        deleteButton.addEventListener("click", function () {
+            return _this.onDelete(_this.model, _this.view);
+        });
+        this.view.getContainer().appendChild(deleteButton);
+    }
+    AnalogWatchController.prototype.update = function (time) {
+        var syncedTime = this.model.syncTime(time);
+        this.view.updateDisplay(syncedTime);
+    };
+    return AnalogWatchController;
+}());
+
+
+
+/***/ }),
+
 /***/ "./src/Controllers/mainWatchController.ts":
 /*!************************************************!*\
   !*** ./src/Controllers/mainWatchController.ts ***!
@@ -15,6 +50,12 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var _Models_watchModel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../Models/watchModel */ "./src/Models/watchModel.ts");
 /* harmony import */ var _Views_watchView__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ../Views/watchView */ "./src/Views/watchView.ts");
 /* harmony import */ var _Controllers_watchController__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ../Controllers/watchController */ "./src/Controllers/watchController.ts");
+/* harmony import */ var _Models_AnalogWatchModel__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ../Models/AnalogWatchModel */ "./src/Models/AnalogWatchModel.ts");
+/* harmony import */ var _Views_AnalogWatchView__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! ../Views/AnalogWatchView */ "./src/Views/AnalogWatchView.ts");
+/* harmony import */ var _Controllers_AnalogWatchController__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ../Controllers/AnalogWatchController */ "./src/Controllers/AnalogWatchController.ts");
+
+
+
 
 
 
@@ -22,48 +63,76 @@ var MainController = /** @class */ (function () {
     function MainController() {
         var _this = this;
         this.watches = [];
-        this.addButton = document.createElement("button");
-        this.addButton.className = "btn add-btn";
-        this.addButton.textContent = "Add watch";
-        this.addButton.addEventListener("click", function () { return _this.addWatch(); });
-        document.body.appendChild(this.addButton);
-        // Synchroniser toutes les montres chaque seconde
+        this.addDigitalButton = document.createElement("button");
+        this.addDigitalButton.className = "btn add-btn-dg";
+        this.addDigitalButton.textContent = "Add Digital watch";
+        this.addDigitalButton.addEventListener("click", function () {
+            return _this.addDigitalWatch();
+        });
+        document.body.appendChild(this.addDigitalButton);
+        this.addAnalogButton = document.createElement("button");
+        this.addAnalogButton.className = "btn add-btn-an";
+        this.addAnalogButton.textContent = "Add Analog watch";
+        this.addAnalogButton.addEventListener("click", function () { return _this.addAnalogWatch(); });
+        document.body.appendChild(this.addAnalogButton);
         setInterval(function () { return _this.syncWatches(); }, 1000);
     }
-    MainController.prototype.addWatch = function () {
-        var _this = this;
-        var timezoneOffset;
+    MainController.prototype.addOffsetPrompt = function () {
+        var systemTimezoneOffset = new Date().getTimezoneOffset() / -60;
+        console.log("D\u00E9calage horaire d\u00E9tect\u00E9 : UTC".concat(systemTimezoneOffset >= 0 ? "+" : "").concat(systemTimezoneOffset));
+        var systemTimezoneMessage = "Le fuseau horaire actuel est : UTC".concat(systemTimezoneOffset >= 0 ? "+" : "").concat(systemTimezoneOffset, ".");
+        var timezoneOffset = prompt("".concat(systemTimezoneMessage, "\n\nEntrez un fuseau horaire (entre -12 et +14) :"));
         var offset;
         var isValidInput = false;
         while (!isValidInput) {
-            timezoneOffset = prompt("Choisissez un fuseau horaire (ex: 2 pour GMT+2, -3 pour GMT-3) :");
             if (timezoneOffset === null) {
-                return;
+                return { isValidInput: false, offset: 0 };
             }
             if (timezoneOffset.trim() === "") {
-                offset = 0; // Convertir en heures
-                console.log("Décalage horaire du système (GMT):", offset);
-                break; // Sortir de la boucle
+                offset = systemTimezoneOffset - 1;
+                isValidInput = true;
+                break;
             }
             if (isNaN(Number(timezoneOffset))) {
                 alert("Erreur : Vous devez entrer un nombre valide.");
+                timezoneOffset = prompt("".concat(systemTimezoneMessage, "\n\nEntrez un fuseau horaire (entre -12 et +14) :"));
                 continue;
             }
-            offset = parseInt(timezoneOffset, 10);
-            if (offset < -12 || offset > 12) {
-                alert("Erreur : Le fuseau horaire doit être compris entre -12 et +12.");
+            offset = parseInt(timezoneOffset, 10) - 1;
+            if (offset < -12 || offset > 14) {
+                alert("Erreur : Le fuseau horaire doit être compris entre -12 et +14.");
+                timezoneOffset = prompt("".concat(systemTimezoneMessage, "\n\nEntrez un fuseau horaire (entre -12 et +14) :"));
                 continue;
             }
             isValidInput = true;
         }
-        // Créer une nouvelle montre avec le décalage horaire valide
-        var model = new _Models_watchModel__WEBPACK_IMPORTED_MODULE_0__.WatchModel(offset);
-        var view = new _Views_watchView__WEBPACK_IMPORTED_MODULE_1__.WatchView();
-        var controller = new _Controllers_watchController__WEBPACK_IMPORTED_MODULE_2__.WatchController(model, view, function () {
-            return _this.deleteWatch(model, view);
-        });
-        this.watches.push({ model: model, view: view, controller: controller });
-        document.body.appendChild(view.getContainer());
+        return { isValidInput: isValidInput, offset: offset };
+    };
+    MainController.prototype.addDigitalWatch = function () {
+        var _this = this;
+        var validOffsetPrompt = this.addOffsetPrompt();
+        if (validOffsetPrompt.isValidInput) {
+            var model_1 = new _Models_watchModel__WEBPACK_IMPORTED_MODULE_0__.WatchModel(validOffsetPrompt.offset);
+            var view_1 = new _Views_watchView__WEBPACK_IMPORTED_MODULE_1__.WatchView();
+            var controller = new _Controllers_watchController__WEBPACK_IMPORTED_MODULE_2__.WatchController(model_1, view_1, function () {
+                return _this.deleteWatch(model_1, view_1);
+            });
+            this.watches.push({ model: model_1, view: view_1, controller: controller });
+            document.body.appendChild(view_1.getContainer());
+        }
+    };
+    MainController.prototype.addAnalogWatch = function () {
+        var _this = this;
+        var validOffsetPrompt = this.addOffsetPrompt();
+        if (validOffsetPrompt.isValidInput) {
+            var model = new _Models_AnalogWatchModel__WEBPACK_IMPORTED_MODULE_3__.AnalogWatchModel(validOffsetPrompt.offset);
+            var view = new _Views_AnalogWatchView__WEBPACK_IMPORTED_MODULE_4__.AnalogWatchView();
+            var controller = new _Controllers_AnalogWatchController__WEBPACK_IMPORTED_MODULE_5__.AnalogWatchController(model, view, function (model, view) {
+                return _this.deleteWatch(model, view);
+            });
+            this.watches.push({ model: model, view: view, controller: controller });
+            document.body.appendChild(view.getContainer());
+        }
     };
     MainController.prototype.deleteWatch = function (model, view) {
         this.watches = this.watches.filter(function (watch) { return watch.model !== model; });
@@ -71,7 +140,14 @@ var MainController = /** @class */ (function () {
     };
     MainController.prototype.syncWatches = function () {
         var now = new Date();
-        this.watches.forEach(function (watch) { return watch.model.syncTime(now); });
+        this.watches.forEach(function (watch) {
+            if (watch.controller instanceof _Controllers_AnalogWatchController__WEBPACK_IMPORTED_MODULE_5__.AnalogWatchController) {
+                watch.controller.update(now);
+            }
+            else if (watch.controller instanceof _Controllers_watchController__WEBPACK_IMPORTED_MODULE_2__.WatchController) {
+                // watch.controller.update(now);
+            }
+        });
     };
     return MainController;
 }());
@@ -156,6 +232,51 @@ var WatchController = /** @class */ (function () {
 
 /***/ }),
 
+/***/ "./src/Models/AnalogWatchModel.ts":
+/*!****************************************!*\
+  !*** ./src/Models/AnalogWatchModel.ts ***!
+  \****************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   AnalogWatchModel: () => (/* binding */ AnalogWatchModel)
+/* harmony export */ });
+/* harmony import */ var _watchModel__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./watchModel */ "./src/Models/watchModel.ts");
+var __extends = (undefined && undefined.__extends) || (function () {
+    var extendStatics = function (d, b) {
+        extendStatics = Object.setPrototypeOf ||
+            ({ __proto__: [] } instanceof Array && function (d, b) { d.__proto__ = b; }) ||
+            function (d, b) { for (var p in b) if (Object.prototype.hasOwnProperty.call(b, p)) d[p] = b[p]; };
+        return extendStatics(d, b);
+    };
+    return function (d, b) {
+        if (typeof b !== "function" && b !== null)
+            throw new TypeError("Class extends value " + String(b) + " is not a constructor or null");
+        extendStatics(d, b);
+        function __() { this.constructor = d; }
+        d.prototype = b === null ? Object.create(b) : (__.prototype = b.prototype, new __());
+    };
+})();
+
+var AnalogWatchModel = /** @class */ (function (_super) {
+    __extends(AnalogWatchModel, _super);
+    function AnalogWatchModel(offset) {
+        var _this = _super.call(this) || this;
+        _this.offset = offset;
+        return _this;
+    }
+    AnalogWatchModel.prototype.syncTime = function (now) {
+        var offsetMs = this.offset * 60 * 60 * 1000;
+        return new Date(now.getTime() + offsetMs);
+    };
+    return AnalogWatchModel;
+}(_watchModel__WEBPACK_IMPORTED_MODULE_0__.WatchModel));
+
+
+
+/***/ }),
+
 /***/ "./src/Models/watchModel.ts":
 /*!**********************************!*\
   !*** ./src/Models/watchModel.ts ***!
@@ -176,7 +297,6 @@ var WatchModel = /** @class */ (function () {
         this.timezoneOffset = timezoneOffset;
         this.currentTime = this.getCurrentTime();
         this.startClock();
-        this.loadSavedTime();
     }
     Object.defineProperty(WatchModel.prototype, "time", {
         // Getters/Setters
@@ -209,7 +329,7 @@ var WatchModel = /** @class */ (function () {
     });
     WatchModel.prototype.startClock = function () {
         var _this = this;
-        this.updateInterval = setInterval(function () {
+        setInterval(function () {
             if (_this.editedTime) {
                 _this.editedTime.setSeconds(_this.editedTime.getSeconds() + 1);
             }
@@ -217,21 +337,6 @@ var WatchModel = /** @class */ (function () {
                 _this.currentTime = _this.getCurrentTime();
             }
         }, 1000);
-    };
-    // Gérer l'heure réglée dans le localStorage
-    WatchModel.prototype.saveTime = function () {
-        if (this.editedTime) {
-            localStorage.setItem("savedTime", JSON.stringify(this.editedTime));
-        }
-        else {
-            localStorage.removeItem("savedTime");
-        }
-    };
-    WatchModel.prototype.loadSavedTime = function () {
-        var savedTime = localStorage.getItem("savedTime");
-        if (savedTime) {
-            this.editedTime = new Date(JSON.parse(savedTime));
-        }
     };
     WatchModel.prototype.getCurrentTime = function () {
         var now = new Date();
@@ -273,13 +378,67 @@ var WatchModel = /** @class */ (function () {
     WatchModel.prototype.resetTime = function () {
         this.currentTime = new Date();
         this.editedTime = null;
-        this.saveTime();
     };
     WatchModel.prototype.setEditedTime = function (newTime) {
         this.editedTime = newTime;
-        this.saveTime();
     };
     return WatchModel;
+}());
+
+
+
+/***/ }),
+
+/***/ "./src/Views/AnalogWatchView.ts":
+/*!**************************************!*\
+  !*** ./src/Views/AnalogWatchView.ts ***!
+  \**************************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   AnalogWatchView: () => (/* binding */ AnalogWatchView)
+/* harmony export */ });
+/* harmony import */ var _utils_Matrix3x3__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../utils/Matrix3x3 */ "./src/utils/Matrix3x3.ts");
+
+var AnalogWatchView = /** @class */ (function () {
+    function AnalogWatchView() {
+        this.container = document.createElement("div");
+        this.container.className = "analog-clock";
+        this.hourHand = document.createElement("div");
+        this.hourHand.className = "hand hour-hand";
+        this.minuteHand = document.createElement("div");
+        this.minuteHand.className = "hand minute-hand";
+        this.secondHand = document.createElement("div");
+        this.secondHand.className = "hand second-hand";
+        this.container.append(this.hourHand, this.minuteHand, this.secondHand);
+    }
+    AnalogWatchView.prototype.updateDisplay = function (time) {
+        var hours = time.getHours() % 12;
+        var minutes = time.getMinutes();
+        var seconds = time.getSeconds();
+        // Calculer les angles des aiguilles
+        var hourAngle = hours * 30 + minutes * 0.5; // 30 degrés par heure, 0.5 degré par minute
+        var minuteAngle = minutes * 6 + seconds * 0.1; // 6 degrés par minute, 0.1 degré par seconde
+        var secondAngle = seconds * 6; // 6 degrés par seconde
+        // Appliquer les transformations matricielles
+        var hourMatrix = _utils_Matrix3x3__WEBPACK_IMPORTED_MODULE_0__.Matrix3x3.rotationMatrix(hourAngle);
+        var minuteMatrix = _utils_Matrix3x3__WEBPACK_IMPORTED_MODULE_0__.Matrix3x3.rotationMatrix(minuteAngle);
+        var secondMatrix = _utils_Matrix3x3__WEBPACK_IMPORTED_MODULE_0__.Matrix3x3.rotationMatrix(secondAngle);
+        // Appliquer les transformations aux aiguilles
+        this.applyTransform(this.hourHand, hourMatrix);
+        this.applyTransform(this.minuteHand, minuteMatrix);
+        this.applyTransform(this.secondHand, secondMatrix);
+    };
+    // Appliquer une transformation matricielle à un élément
+    AnalogWatchView.prototype.applyTransform = function (element, matrix) {
+        var transform = "matrix(".concat(matrix.values[0][0], ", ").concat(matrix.values[1][0], ", ").concat(matrix.values[0][1], ", ").concat(matrix.values[1][1], ", ").concat(matrix.values[0][2], ", ").concat(matrix.values[1][2], ")");
+        element.style.transform = transform;
+    };
+    AnalogWatchView.prototype.getContainer = function () {
+        return this.container;
+    };
+    return AnalogWatchView;
 }());
 
 
@@ -334,15 +493,13 @@ var WatchView = /** @class */ (function () {
         var hours = time.getHours();
         var minutes = this.formatNumber(time.getMinutes());
         var seconds = this.formatNumber(time.getSeconds());
-        // Convertir en format 12h si nécessaire
         if (is12HourFormat) {
             var period = hours >= 12 ? "PM" : "AM";
-            // Convertir en format 12h
             if (hours === 0) {
-                hours = 12; // Minuit (0 heures) devient 12 en format 12h
+                hours = 12;
             }
             else if (hours > 12) {
-                hours = hours % 12; // Heures après midi (13-23) deviennent 1-11
+                hours = hours % 12;
             }
             this.display.innerHTML = "\n            <span class=\"".concat(editMode === "hours" ? "blink" : "", "\">").concat(this.formatNumber(hours), "</span>:\n            <span class=\"").concat(editMode === "minutes" ? "blink" : "", "\">").concat(minutes, "</span>:\n            <span class=\"seconds\">").concat(seconds, "</span>\n            <span class=\"period\">").concat(period, "</span> <!-- Afficher AM ou PM dynamiquement -->\n        ");
         }
@@ -374,6 +531,79 @@ var WatchView = /** @class */ (function () {
         this.deleteBtn.addEventListener("click", handler);
     };
     return WatchView;
+}());
+
+
+
+/***/ }),
+
+/***/ "./src/utils/Matrix3x3.ts":
+/*!********************************!*\
+  !*** ./src/utils/Matrix3x3.ts ***!
+  \********************************/
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   Matrix3x3: () => (/* binding */ Matrix3x3)
+/* harmony export */ });
+var Matrix3x3 = /** @class */ (function () {
+    function Matrix3x3(values) {
+        this.values = values;
+    }
+    // Multiplier deux matrices
+    Matrix3x3.prototype.multiply = function (other) {
+        var result = [
+            [0, 0, 0],
+            [0, 0, 0],
+            [0, 0, 0],
+        ];
+        for (var i = 0; i < 3; i++) {
+            for (var j = 0; j < 3; j++) {
+                for (var k = 0; k < 3; k++) {
+                    result[i][j] += this.values[i][k] * other.values[k][j];
+                }
+            }
+        }
+        return new Matrix3x3(result);
+    };
+    // Appliquer une transformation à un point (x, y)
+    Matrix3x3.prototype.transformPoint = function (x, y) {
+        var resultX = this.values[0][0] * x + this.values[0][1] * y + this.values[0][2];
+        var resultY = this.values[1][0] * x + this.values[1][1] * y + this.values[1][2];
+        return { x: resultX, y: resultY };
+    };
+    // Créer une matrice de rotation
+    Matrix3x3.rotationMatrix = function (angle) {
+        var rad = (angle * Math.PI) / 180;
+        var cos = Math.cos(rad);
+        var sin = Math.sin(rad);
+        return new Matrix3x3([
+            [cos, -sin, 0],
+            [sin, cos, 0],
+            [0, 0, 1],
+        ]);
+    };
+    // Créer une matrice de translation
+    Matrix3x3.translationMatrix = function (dx, dy) {
+        return new Matrix3x3([
+            [1, 0, dx],
+            [0, 1, dy],
+            [0, 0, 1],
+        ]);
+    };
+    // Créer une matrice de mise à l'échelle
+    Matrix3x3.scalingMatrix = function (sx, sy) {
+        return new Matrix3x3([
+            [sx, 0, 0],
+            [0, sy, 0],
+            [0, 0, 1],
+        ]);
+    };
+    Matrix3x3.prototype.getValues = function () {
+        return this.values;
+    };
+    return Matrix3x3;
 }());
 
 

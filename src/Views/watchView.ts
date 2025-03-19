@@ -1,4 +1,5 @@
 export class WatchView {
+  public container: HTMLElement;
   private display: HTMLElement;
   private modeBtn: HTMLButtonElement;
   private increaseBtn: HTMLButtonElement;
@@ -6,8 +7,6 @@ export class WatchView {
   private formatBtn: HTMLButtonElement;
   private resetBtn: HTMLButtonElement;
   private deleteBtn: HTMLButtonElement;
-
-  private container: HTMLElement;
 
   constructor() {
     document.getElementById("watch-root")!;
@@ -61,24 +60,22 @@ export class WatchView {
     return this.container;
   }
 
-  updateDisplay(
+  public updateDisplay(
     time: Date,
-    editMode: string,
-    isLightOn: boolean,
-    is12HourFormat: boolean
+    editMode?: string,
+    isLightOn?: boolean,
+    is12HourFormat?: boolean
   ): void {
     let hours = time.getHours();
     const minutes = this.formatNumber(time.getMinutes());
     const seconds = this.formatNumber(time.getSeconds());
 
-    // Convertir en format 12h si nécessaire
     if (is12HourFormat) {
       const period = hours >= 12 ? "PM" : "AM";
-      // Convertir en format 12h
       if (hours === 0) {
-        hours = 12; // Minuit (0 heures) devient 12 en format 12h
+        hours = 12;
       } else if (hours > 12) {
-        hours = hours % 12; // Heures après midi (13-23) deviennent 1-11
+        hours = hours % 12;
       }
       this.display.innerHTML = `
             <span class="${
